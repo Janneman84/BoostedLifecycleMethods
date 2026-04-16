@@ -187,8 +187,8 @@ fileprivate extension UIViewController {
                 }
 
                 guard
-                    self?.presentedViewController == nil,
-                    layer.animationKeys()?.isEmpty == false
+                    self?.presentedViewController == nil
+//                    , (layer.animationKeys() ?? []).isEmpty
                 else {
                     return
                 }

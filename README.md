@@ -2,13 +2,12 @@
 
 Adds `viewWillAppear🚀()`, `viewIsAppearing🚀()`, `viewDidAppear🚀()`, `viewWillDisappear🚀()` and `viewDidDisappear🚀()` to your UIViewControllers.
 
-These act like the normal lifecycle methods, but are triggered more practically.
+These act like the normal lifecycle methods, but has 2 main advantages:
 
-It has 2 main advantages:
 1. When using pagesheets and formsheets.
 2. When backgrounding and foregrounding the app.
 
-## Pagesheets/Formsheets
+## 1. Pagesheets/Formsheets
 
 Normally when presenting a pagesheet or formsheet the presenting ViewController doesn't trigger `viewWillDisappear()` and `viewDidDisappear()`. Also when dismissing `viewWillAppear()`, `viewIsAppearing()`, `viewDidAppear()` won't get called. To fix this you can use the 🚀 versions of these methods which _will_ get called!
 
@@ -16,7 +15,7 @@ Normally when presenting a pagesheet or formsheet the presenting ViewController 
 
 When you drag down a pagesheet and you release it above the treshold the pagesheet snaps back up. This triggers `viewWillAppear()`, `viewIsAppearing()` and `viewDidAppear()`, but at the same time _after_ the animation has finished. However, `viewWillAppear🚀()` and `viewIsAppearing🚀()` will be triggered as soon as you let go and the animations _starts_.
 
-## Backgrounding/Foregrounding
+## 2. Backgrounding/Foregrounding
 
 Normally when backgrounding or foregrounding an app no lifecycle methods get called. However, 🚀 methods _will_ get called! When backgrounding the top most ViewController will trigger `viewWillDisappear🚀()` and `viewDidDisappear🚀()`. When foregrounding the top most ViewController will trigger `viewWillAppear🚀()`, `viewIsAppearing🚀()` and `viewDidAppear🚀()`.
 

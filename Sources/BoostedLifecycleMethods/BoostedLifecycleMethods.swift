@@ -215,6 +215,9 @@ fileprivate extension UIViewController {
                                 ao.abortingSwipeDown = true
                             } else {
                                 print("swipe down continue \(self?.title ?? self?.description)")
+                                if layer.frame.minY < 100 {
+                                    ao.firstResponder?.becomeFirstResponder()
+                                }
                             }
                             break
                         }

@@ -1,5 +1,5 @@
 //
-//  Initializer.h
+//  BoostedLifecycleMethodsInitializer.h
 //  MixedFwk
 //
 //  Created by Eidinger, Marco on 11/14/22.
@@ -9,7 +9,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface Initializer : NSObject
+@interface InitializerBLM : NSObject
 @end
 
 NS_ASSUME_NONNULL_END

@@ -6,23 +6,23 @@ import PackageDescription
 let package = Package(
     name: "BoostedLifecycleMethods",
     platforms: [
-        .iOS(.v9), .tvOS(.v9)
+        .iOS(.v12), .tvOS(.v12)
     ],
     products: [
         .library(
             name: "BoostedLifecycleMethods",
-            targets: ["Initializer"]
-        ),
+            targets: ["InitializerBLM"]
+        )
     ],
     dependencies: [],
     targets: [
         .target(
-            name: "Initializer",
+            name: "InitializerBLM",
             dependencies: ["BoostedLifecycleMethods"]
         ),
         .target(
             name: "BoostedLifecycleMethods",
             dependencies: []
-        ),
+        )
     ]
 )

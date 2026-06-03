@@ -5,10 +5,10 @@
 //  Created by Eidinger, Marco on 11/14/22.
 //
 
-#import "Initializer.h"
+#import "InitializerBLM.h"
 @import BoostedLifecycleMethods;
 
-@implementation Initializer
+@implementation InitializerBLM
 +(void)load {
     [UIViewController _boostLifecycleMethodsWithDebug:NO]; //this automatically initializes the package on startup
 }

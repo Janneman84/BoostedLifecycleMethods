@@ -52,7 +52,7 @@ public extension UIViewController {
     }
 }
 
-fileprivate var debuggy = false
+nonisolated(unsafe) fileprivate var debuggy = false
 
 fileprivate extension UIViewController {
     
@@ -88,7 +88,9 @@ fileprivate extension UIViewController {
     
     @objc func swizzledViewDidLoad() -> Void {
         swizzledViewDidLoad() //run original implementation
-        ao = AssociatedObject()
+        if ao == nil {
+            ao = AssociatedObject()
+        }
         ao?.viewController = self
     }
     
@@ -102,10 +104,12 @@ fileprivate extension UIViewController {
     
     @objc func swizzleViewWillAppear(_ animated: Bool) -> Void {
         swizzleViewWillAppear(animated) //run original implementation
+        print("viewWillAppear \(self.title ?? self.description)")
         doViewWillAppear(animated)
     }
     
     @objc func doViewWillAppear(_ animated: Bool) -> Void {
+        let ao = ao
         guard !(ao?.abortingSwipeDown ?? false) else { return }
         loopProtect() {
             print("viewWillAppear🚀 \(self.title ?? self.description)")
@@ -117,11 +121,26 @@ fileprivate extension UIViewController {
         else if let presentingViewController = presentingViewController, modalPresentationStyle != .fullScreen && rootParent == self {
             presentingViewController.allChildrenViewWillDisappear🚀(animated)
         }
+        
+        ao?.firstResponder?.becomeFirstResponder()
+        ao?.firstResponder = nil
+        
+        // Bonus feature that fixes tintAdjustmentMode not adjusting when presentingViewController is not rootVC
+        if let rootParent = presentingViewController?.rootParent,
+           rootParent.presentingViewController != nil,
+           modalPresentationStyle != .fullScreen {
+            DispatchQueue.main.async() {
+                UIView.animate(withDuration: 0.3, delay: 0, options: UIView.AnimationOptions.curveEaseOut, animations: {
+                    rootParent.view.tintAdjustmentMode = .dimmed
+                })
+            }
+        }
     }
     
     @available(iOS 13, tvOS 13, *)
     @objc func swizzleViewIsAppearing(_ animated: Bool) -> Void {
         swizzleViewIsAppearing(animated) //run original implementation
+        print("viewIsAppearing \(self.title ?? self.description)")
         doViewIsAppearing(animated)
     }
     
@@ -132,24 +151,15 @@ fileprivate extension UIViewController {
             print("viewIsAppearing🚀 \(self.title ?? self.description)")
             viewIsAppearing🚀(animated)
         }
-        
-        // Bonus feature that fixes tintAdjustmentMode not adjusting when presentingViewController is not rootVC
-        if let rootParent = presentingViewController?.rootParent,
-           rootParent.presentingViewController != nil,
-           modalPresentationStyle == .pageSheet || modalPresentationStyle == .formSheet {
-            DispatchQueue.main.async() {
-                UIView.animate(withDuration: 0.3, delay: 0, options: UIView.AnimationOptions.curveEaseOut, animations: {
-                    rootParent.view.tintAdjustmentMode = .dimmed
-                })
-            }
-        }
     }
     
     @objc func swizzleViewDidAppear(_ animated: Bool) -> Void {
         swizzleViewDidAppear(animated) //run original implementation
+        print("viewDidAppear \(self.title ?? self.description)")
         doViewDidAppear(animated)
     }
     
+    @MainActor
     @objc func doViewDidAppear(_ animated: Bool) -> Void {
         loopProtect() {
             print("viewDidAppear🚀 \(self.title ?? self.description)")
@@ -169,20 +179,21 @@ fileprivate extension UIViewController {
             presentingViewController.allChildrenViewDidDisappear🚀(animated)
         }
        
+        #if os(iOS)
         if presentedViewController == nil,
            rootParent == self,
            modalPresentationStyle == .pageSheet || modalPresentationStyle == .formSheet,
            #available(iOS 13, tvOS 99, *),
            !ProcessInfo.processInfo.isMacCatalystApp,
            let dropShadow = presentationController?.containerView?.subviews.last(where: { type(of: $0).description().lowercased().contains("dropshadow") }),
-           let layer = dropShadow.superview?.layer.sublayers?.last
+           let layer = dropShadow.superview?.layer.sublayers?.last,
+           let ao
         {
-            
             // Find pagesheet's UIDropShadowView and monitor its shadow for a cancel animation.
-            ao?.shadowObserver = layer.observe(\.position) { [weak self] _,_ in
+            ao.shadowObserver = layer.observe(\.position) { [weak self] _,_ in
 
-                if (ao?.abortingSwipeDown ?? false) {
-                    ao?.abortingSwipeDown = false
+                if ao.abortingSwipeDown {
+                    ao.abortingSwipeDown = false
                     self?.doViewWillDisappear(true)
                 }
 
@@ -201,7 +212,7 @@ fileprivate extension UIViewController {
                                 print("swipe down aborted \(self?.title ?? self?.description)")
                                 self?.doViewWillAppear(true)
                                 self?.doViewIsAppearing(true)
-                                ao?.abortingSwipeDown = true
+                                ao.abortingSwipeDown = true
                             } else {
                                 print("swipe down continue \(self?.title ?? self?.description)")
                             }
@@ -211,11 +222,38 @@ fileprivate extension UIViewController {
                 }
             }
         }
+        #endif
     }
     
     @objc func swizzledViewWillDisappear(_ animated: Bool) -> Void {
         swizzledViewWillDisappear(animated) //run original implementation
+        print("viewWillDisappear \(self.title ?? self.description)")
         doViewWillDisappear(animated)
+
+        #if os(iOS)
+        let ao = ao
+        ao?.firstResponder = nil
+        if presentedViewController == nil,
+           rootParent == self,
+           modalPresentationStyle == .pageSheet || modalPresentationStyle == .formSheet,
+           #available(iOS 13, tvOS 99, *),
+           !ProcessInfo.processInfo.isMacCatalystApp,
+           UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.phone
+        {
+            DispatchQueue.main.async() { [weak self] in
+                DispatchQueue.main.async() { [weak self] in
+                    self?.view.iterateSubviews() { subview, level in
+                        if subview.isFirstResponder { //} && (subview is UITextField || subview is UITextView) {
+                            ao?.firstResponder = subview
+                            subview.resignFirstResponder()
+                            return false
+                        }
+                        return true
+                    }
+                }
+            }
+        }
+        #endif
    }
     
     @objc func doViewWillDisappear(_ animated: Bool) -> Void {
@@ -232,6 +270,7 @@ fileprivate extension UIViewController {
     
     @objc func swizzleViewDidDisappear(_ animated: Bool) -> Void {
         swizzleViewDidDisappear(animated) //run original implementation
+        print("viewDidDisappear \(self.title ?? self.description)")
         doViewDidDisappear(animated)
     }
     
@@ -304,7 +343,7 @@ fileprivate extension UIViewController {
     
     class AssociatedObject {
         
-        static var key = malloc(1)!
+        nonisolated(unsafe) static var key = malloc(1)!
         
         weak var viewController: UIViewController?
         
@@ -313,6 +352,8 @@ fileprivate extension UIViewController {
         var abortingSwipeDown = false
         
         var shadowObserver: NSKeyValueObservation?
+
+        weak var firstResponder: UIView?
         
         var hasSetObservers = false
         func setObservers() {
@@ -390,7 +431,7 @@ fileprivate extension UIViewController {
 }
 
 //formatter for print()'s timestamp (below), is lazily instantiated so never gets called in release builds:
-fileprivate var printTimeDateFormatter : DateFormatter = {
+nonisolated(unsafe) fileprivate var printTimeDateFormatter : DateFormatter = {
     let tdf = DateFormatter()
     tdf.dateFormat = "HH:mm:ss.SSS"
     return tdf
@@ -410,4 +451,17 @@ func print(_ items: Any..., separator: String = "", terminator: String = "\n") {
         while idx < endIdx
     }
     #endif
+}
+
+fileprivate extension UIView {
+    func iterateSubviews(maxLevel:UInt = UInt.max, level: UInt = 0, onSubview: (UIView, UInt)->(Bool)) {
+        if onSubview(self, level) {
+            let level = level + 1
+            if level <= maxLevel {
+                for subview in subviews {
+                    subview.iterateSubviews(maxLevel: maxLevel, level: level, onSubview: onSubview)
+                }
+            }
+        }
+    }
 }

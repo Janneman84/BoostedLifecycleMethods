@@ -1,3 +1,7 @@
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FJanneman84%2FBoostedLifecycleMethods%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/Janneman84/BoostedLifecycleMethods)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FJanneman84%2FBoostedLifecycleMethods%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/Janneman84/BoostedLifecycleMethods)[![](https://shields.io/badge/UIKit-white?logo=swift&?style=social)](https://swiftpackageindex.com/Janneman84/AnimationSpeedBooster)
+[![Swift Package Manager compatible](https://img.shields.io/badge/spm-compatible-brightgreen.svg?style=flat)](https://swift.org/package-manager)
+
 # BoostedLifecycleMethods for iOS
 
 Adds `viewWillAppear🚀()`, `viewIsAppearing🚀()`, `viewDidAppear🚀()`, `viewWillDisappear🚀()` and `viewDidDisappear🚀()` to your UIViewControllers.

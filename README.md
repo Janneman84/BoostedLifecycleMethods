@@ -25,7 +25,7 @@ When dragging down a pagesheet the keyboard will automatically go away. If you c
 
 <img width="320" height="569" alt="ezgif com-video-to-gif-converter" src="https://github.com/user-attachments/assets/02af1d01-ae3f-4143-b56b-795601155a2b" />
 
-This all works automatically, no need to code anything.
+This all works automatically, no need to code anything. This works in SwiftUI too!
 
 ## 4. Subtle detail
 

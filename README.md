@@ -11,13 +11,25 @@ These act like the normal lifecycle methods, but has 2 main advantages:
 
 Normally when presenting a pagesheet or formsheet the presenting ViewController doesn't trigger `viewWillDisappear()` and `viewDidDisappear()`. Also when dismissing `viewWillAppear()`, `viewIsAppearing()`, `viewDidAppear()` won't get called. To fix this you can use the 🚀 versions of these methods which _will_ get called!
 
-##### Bonus feature
-
-When you drag down a pagesheet and you release it above the treshold the pagesheet snaps back up. This triggers `viewWillAppear()`, `viewIsAppearing()` and `viewDidAppear()`, but at the same time _after_ the animation has finished. However, `viewWillAppear🚀()` and `viewIsAppearing🚀()` will be triggered as soon as you let go and the animations _starts_.
-
 ## 2. Backgrounding/Foregrounding
 
 Normally when backgrounding or foregrounding an app no lifecycle methods get called. However, 🚀 methods _will_ get called! When backgrounding the top most ViewController will trigger `viewWillDisappear🚀()` and `viewDidDisappear🚀()`. When foregrounding the top most ViewController will trigger `viewWillAppear🚀()`, `viewIsAppearing🚀()` and `viewDidAppear🚀()`.
+
+## 3. Bonus feature
+
+When dragging down a pagesheet the keyboard will automatically go away. If you cancel the drag it comes back immediately (iPhone only).
+
+<img width="320" height="569" alt="ezgif com-video-to-gif-converter" src="https://github.com/user-attachments/assets/02af1d01-ae3f-4143-b56b-795601155a2b" />
+
+This all works automatically, no need to code anything.
+
+## 4. Subtle detail
+
+When you drag down a pagesheet and you release it above the treshold the pagesheet snaps back up. This triggers `viewWillAppear()`, `viewIsAppearing()` and `viewDidAppear()`, but at the same time _after_ the animation has finished. However, `viewWillAppear🚀()` and `viewIsAppearing🚀()` will be triggered as soon as the cancel animations _starts_.
+
+## 5. tintAdjustmentMode fix
+
+This package also fixes some inconsistencies regarding tintAdjustmentMode. For example, when showing an alert the buttons on the presenting VC will now always turn gray (instead of only in some cases).
 
 ## Installation
 

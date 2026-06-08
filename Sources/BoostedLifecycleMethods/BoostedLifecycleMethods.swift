@@ -6,55 +6,7 @@
 
 import UIKit
 
-public extension UIViewController {
-    
-    ///Works like regular *viewWillAppear()*, but this one also gets called when closing a non-fullscreen modal (e.g. pagesheet) and when app returns to foreground.
-    ///
-    ///There is no need to call its super but feel free to do so.
-    ///
-    ///- Warning: Do **NOT** call *viewWillAppear()* or *super.viewWillAppear()* inside this method, this will cause an endless loop.
-    @objc open func viewWillAppear🚀(_ animated: Bool) {}
-    
-    ///Works like regular *viewIsAppearing()*, but this one also gets called when closing a non-fullscreen modal (e.g. pagesheet) and when app returns to foreground.
-    ///
-    ///There is no need to call its super but feel free to do so.
-    ///
-    ///- Warning: Do **NOT** call  *viewIsAppearing()* or *super.viewIsAppearing()* inside this method, this will cause an endless loop.
-    @available(iOS 13, tvOS 13, *)
-    @objc open func viewIsAppearing🚀(_ animated: Bool) {}
-    
-    ///Works like regular *viewDidAppear()*, but this one also gets called when closing a non-fullscreen modal (e.g. pagesheet) and when app returns to foreground.
-    ///
-    ///There is no need to call its super but feel free to do so.
-    ///
-    ///- Warning: Do **NOT** call *viewDidAppear()* or *super.viewDidAppear()* inside this method, this will cause an endless loop.
-    @objc open func viewDidAppear🚀(_ animated: Bool) {}
-    
-    ///Works like regular *viewWillDisappear()*, but this one also gets called when opening a non-fullscreen modal (e.g. pagesheet) and when app goes to background.
-    ///
-    ///There is no need to call its super but feel free to do so.
-    ///
-    ///- Warning: Do **NOT** call *viewWillDisappear()* or *super.viewWillDisappear()* inside this method, this will cause an endless loop.
-    @objc open func viewWillDisappear🚀(_ animated: Bool) {}
-    
-    ///Works like regular *viewDidDisappear()*, but this one also gets called when opening a non-fullscreen modal (e.g. pagesheet) and when app goes to background.
-    ///
-    ///There is no need to call its super but feel free to do so.
-    ///
-    ///- Warning: Do **NOT** call *viewDidDisappear)* or *super.viewDidDisappear* inside this method, this will cause an endless loop.
-    @objc open func viewDidDisappear🚀(_ animated: Bool) {}
-    
-    /// This is called automatically on startup to initialize the boosted lifecycle methods. There is no need to call this manually yourself (but won't hurt either).
-    /// When debug is enabled extra information will be printed to the console.
-    @objc static func _boostLifecycleMethods(debug: Bool = false) {
-        debuggy = debug
-        actuallySwizzleLifecycleMethods //this makes sure it can only swizzle once
-    }
-}
-
-nonisolated(unsafe) fileprivate var debuggy = false
-
-fileprivate extension UIViewController {
+extension UIViewController {
     
     static let actuallySwizzleLifecycleMethods: Void = {
         method_exchangeImplementations(
@@ -84,6 +36,7 @@ fileprivate extension UIViewController {
             class_getInstanceMethod(UIViewController.self, #selector(swizzleViewDidDisappear(_:)))!
         )
         Swift.print("Boosted lifecycle methods enabled. Add 'import BoostedLifecycleMethods' so you can override viewWillAppear🚀(), viewIsAppearing🚀(), viewDidAppear🚀(), viewWillDisappear🚀() and viewDidDisappear🚀() inside your ViewControllers.")
+        Swift.print("You can also access UIViewController.hideKeyboardOnSheetDrag🚀, UIViewController.hideKeyboardOnTapOutside🚀, UIAlertController.cancelOnTapOutside🚀 and UIAlertController.closeOnTapOutsideButtonless🚀.")
     }()
     
     @objc func swizzledViewDidLoad() -> Void {
@@ -104,8 +57,15 @@ fileprivate extension UIViewController {
     
     @objc func swizzleViewWillAppear(_ animated: Bool) -> Void {
         swizzleViewWillAppear(animated) //run original implementation
+        if ao == nil {
+            ao = AssociatedObject()
+        }
+        ao?.viewController = self
+        
         print("viewWillAppear \(self.title ?? self.description)")
         doViewWillAppear(animated)
+        
+        (self as? UIAlertController)?.addBackgroundTapRecognizer()
     }
     
     @objc func doViewWillAppear(_ animated: Bool) -> Void {
@@ -140,6 +100,10 @@ fileprivate extension UIViewController {
     @available(iOS 13, tvOS 13, *)
     @objc func swizzleViewIsAppearing(_ animated: Bool) -> Void {
         swizzleViewIsAppearing(animated) //run original implementation
+        if ao == nil {
+            ao = AssociatedObject()
+        }
+        ao?.viewController = self
         print("viewIsAppearing \(self.title ?? self.description)")
         doViewIsAppearing(animated)
     }
@@ -155,6 +119,11 @@ fileprivate extension UIViewController {
     
     @objc func swizzleViewDidAppear(_ animated: Bool) -> Void {
         swizzleViewDidAppear(animated) //run original implementation
+        if ao == nil {
+            ao = AssociatedObject()
+        }
+        ao?.viewController = self
+        
         print("viewDidAppear \(self.title ?? self.description)")
         doViewDidAppear(animated)
     }
@@ -185,13 +154,31 @@ fileprivate extension UIViewController {
            modalPresentationStyle == .pageSheet || modalPresentationStyle == .formSheet,
            #available(iOS 13, tvOS 99, *),
            !ProcessInfo.processInfo.isMacCatalystApp,
+           UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.phone,
+           Self.hideKeyboardOnSheetDrag🚀,
+           let ao,
            let dropShadow = presentationController?.containerView?.subviews.last(where: { type(of: $0).description().lowercased().contains("dropshadow") }),
-           let layer = dropShadow.superview?.layer.sublayers?.last,
-           let ao
+           let layer = dropShadow.superview?.layer.sublayers?.last
         {
+            ao.shadowFrame = layer.frame
+            
             // Find pagesheet's UIDropShadowView and monitor its shadow for a cancel animation.
             ao.shadowObserver = layer.observe(\.position) { [weak self] _,_ in
-
+                
+//                print(dropShadow.frame)
+//                print(layer.frame)
+//                
+//                if ao.shadowFrame.minX != dropShadow.frame.minX || ao.shadowFrame.width != dropShadow.frame.width {
+//                    ao.shadowFrame = dropShadow.frame
+//                    print("hatsikidee 1")
+//                }
+//                else if dropShadow.frame.minY <= ao.shadowFrame.minY {
+//                    ao.firstResponder?.becomeFirstResponder()
+//                    print("hatsikidee 2")
+//                } else {
+//                    ao.firstResponder?.resignFirstResponder()
+//                }
+                
                 if ao.abortingSwipeDown {
                     ao.abortingSwipeDown = false
                     self?.doViewWillDisappear(true)
@@ -215,9 +202,6 @@ fileprivate extension UIViewController {
                                 ao.abortingSwipeDown = true
                             } else {
                                 print("swipe down continue \(self?.title ?? self?.description)")
-                                if layer.frame.minY < 100 {
-                                    ao.firstResponder?.becomeFirstResponder()
-                                }
                             }
                             break
                         }
@@ -230,6 +214,11 @@ fileprivate extension UIViewController {
     
     @objc func swizzledViewWillDisappear(_ animated: Bool) -> Void {
         swizzledViewWillDisappear(animated) //run original implementation
+        if ao == nil {
+            ao = AssociatedObject()
+        }
+        ao?.viewController = self
+        
         print("viewWillDisappear \(self.title ?? self.description)")
         doViewWillDisappear(animated)
 
@@ -241,17 +230,14 @@ fileprivate extension UIViewController {
            modalPresentationStyle == .pageSheet || modalPresentationStyle == .formSheet,
            #available(iOS 13, tvOS 99, *),
            !ProcessInfo.processInfo.isMacCatalystApp,
-           UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.phone
+           UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.phone,
+           Self.hideKeyboardOnSheetDrag🚀
         {
             DispatchQueue.main.async() { [weak self] in
                 DispatchQueue.main.async() { [weak self] in
-                    self?.view.iterateSubviews() { subview, level in
-                        if subview.isFirstResponder { //} && (subview is UITextField || subview is UITextView) {
-                            ao?.firstResponder = subview
-                            subview.resignFirstResponder()
-                            return false
-                        }
-                        return true
+                    if let firstResponder = self?.view.findFirstResponder() {
+                        ao?.firstResponder = firstResponder
+                        firstResponder.resignFirstResponder()
                     }
                 }
             }
@@ -273,6 +259,11 @@ fileprivate extension UIViewController {
     
     @objc func swizzleViewDidDisappear(_ animated: Bool) -> Void {
         swizzleViewDidDisappear(animated) //run original implementation
+        if ao == nil {
+            ao = AssociatedObject()
+        }
+        ao?.viewController = self
+        
         print("viewDidDisappear \(self.title ?? self.description)")
         doViewDidDisappear(animated)
     }
@@ -285,6 +276,7 @@ fileprivate extension UIViewController {
         if let presentingViewController = ao?.presentingViewController {
             presentingViewController.allChildrenViewDidAppear🚀(animated)
         }
+        ao?.shadowObserver?.invalidate()
     }
 
     var rootParent: UIViewController {
@@ -344,127 +336,5 @@ fileprivate extension UIViewController {
         }
     }
     
-    class AssociatedObject {
-        
-        nonisolated(unsafe) static var key = malloc(1)!
-        
-        weak var viewController: UIViewController?
-        
-        var loopProtector = false
-        
-        var abortingSwipeDown = false
-        
-        var shadowObserver: NSKeyValueObservation?
 
-        weak var firstResponder: UIView?
-        
-        var hasSetObservers = false
-        func setObservers() {
-            guard !hasSetObservers else { return }
-            hasSetObservers = true
-            DispatchQueue.main.async() { [self] in
-                if #available(iOS 13, tvOS 13, *) {
-                    NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground),  name: UIScene.willEnterForegroundNotification,          object: nil)
-                    NotificationCenter.default.addObserver(self, selector: #selector(didEnterForeground),   name: UIScene.didActivateNotification,                  object: nil)
-                    NotificationCenter.default.addObserver(self, selector: #selector(willEnterBackground),  name: UIScene.willDeactivateNotification,               object: nil)
-                    NotificationCenter.default.addObserver(self, selector: #selector(didEnterBackground),   name: UIScene.didEnterBackgroundNotification,           object: nil)
-                } else {
-                    NotificationCenter.default.addObserver(self, selector: #selector(willEnterForeground),  name: UIApplication.willEnterForegroundNotification,    object: nil)
-                    NotificationCenter.default.addObserver(self, selector: #selector(didEnterForeground),   name: UIApplication.didBecomeActiveNotification,        object: nil)
-                    NotificationCenter.default.addObserver(self, selector: #selector(willEnterBackground),  name: UIApplication.willResignActiveNotification,       object: nil)
-                    NotificationCenter.default.addObserver(self, selector: #selector(didEnterBackground),   name: UIApplication.didEnterBackgroundNotification,     object: nil)
-                }
-            }
-        }
-        
-        weak var presentingViewController: UIViewController?
-        weak var presentedViewController: UIViewController?
-        
-        var alreadyEnteredBackground = false //prevents double calling on mac
-        var prevWillEnterBackground = false
-        
-        @objc private func willEnterBackground() {
-            if #available(iOS 13, tvOS 13, *), ProcessInfo.processInfo.isMacCatalystApp && viewController?.view.window?.windowScene?.activationState != .foregroundActive { return }
-            print("willEnterBackground 🚀")
-            alreadyEnteredBackground = false
-            prevWillEnterBackground = true
-            if let viewController = viewController, viewController.presentedViewController == nil, viewController.parent == nil {
-                viewController.allChildrenViewWillDisappear🚀(false)
-            }
-        }
-        
-        @objc private func didEnterBackground() {
-            print("didEnterBackground 🚀")
-            guard !alreadyEnteredBackground else { return }
-            alreadyEnteredBackground = true
-            prevWillEnterBackground = false
-            if let viewController = viewController, viewController.presentedViewController == nil, viewController.parent == nil {
-                viewController.allChildrenViewDidDisappear🚀(false)
-            }
-        }
-        
-        @objc private func willEnterForeground() {
-            if #available(iOS 13, tvOS 13, *), ProcessInfo.processInfo.isMacCatalystApp && UIApplication.shared.applicationState != .active { return }
-            print("willEnterForeground 🚀")
-            prevWillEnterBackground = false
-            if let viewController = viewController, viewController.presentedViewController == nil, viewController.parent == nil {
-                viewController.allChildrenViewWillAppear🚀(false)
-            }
-        }
-        
-        @objc private func didEnterForeground() {
-            if #available(iOS 13, tvOS 13, *), ProcessInfo.processInfo.isMacCatalystApp && UIApplication.shared.applicationState != .active { return }
-            print("didEnterForeground 🚀")
-            //fix for when resizing iPad split view only triggers active notifications and not background notifications
-            if prevWillEnterBackground {
-                didEnterBackground()
-                willEnterForeground()
-            }
-            prevWillEnterBackground = false
-            if let viewController = viewController, viewController.presentedViewController == nil, viewController.parent == nil {
-                viewController.allChildrenViewDidAppear🚀(false)
-            }
-        }
-        
-        deinit {
-            NotificationCenter.default.removeObserver(self) //just in case
-            shadowObserver?.invalidate() //just in case
-        }
-    }
-}
-
-//formatter for print()'s timestamp (below), is lazily instantiated so never gets called in release builds:
-nonisolated(unsafe) fileprivate var printTimeDateFormatter : DateFormatter = {
-    let tdf = DateFormatter()
-    tdf.dateFormat = "HH:mm:ss.SSS"
-    return tdf
-}()
-
-
-//redefinition of print() so it only prints to console in debug builds, and adds a timestamp which is often handy:
-func print(_ items: Any..., separator: String = "", terminator: String = "\n") {
-    #if DEBUG
-    if debuggy {
-        var idx = items.startIndex
-        let endIdx = items.endIndex
-        repeat {
-            Swift.print("\(printTimeDateFormatter.string(from: Date())) \(items[idx])", separator: separator, terminator: idx+1 == endIdx ? terminator : separator)
-            idx += 1
-        }
-        while idx < endIdx
-    }
-    #endif
-}
-
-fileprivate extension UIView {
-    func iterateSubviews(maxLevel:UInt = UInt.max, level: UInt = 0, onSubview: (UIView, UInt)->(Bool)) {
-        if onSubview(self, level) {
-            let level = level + 1
-            if level <= maxLevel {
-                for subview in subviews {
-                    subview.iterateSubviews(maxLevel: maxLevel, level: level, onSubview: onSubview)
-                }
-            }
-        }
-    }
 }

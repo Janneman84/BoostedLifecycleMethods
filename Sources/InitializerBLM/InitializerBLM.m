@@ -10,6 +10,6 @@
 
 @implementation InitializerBLM
 +(void)load {
-    [UIViewController _boostLifecycleMethodsWithDebug:NO]; //this automatically initializes the package on startup
+    [UIViewController _boostLifecycleMethods🚀WithDebug:NO]; //this automatically initializes the package on startup
 }
 @end

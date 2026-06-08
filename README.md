@@ -4,9 +4,9 @@
 
 # BoostedLifecycleMethods for iOS
 
-Adds `viewWillAppear🚀()`, `viewIsAppearing🚀()`, `viewDidAppear🚀()`, `viewWillDisappear🚀()` and `viewDidDisappear🚀()` to your UIViewControllers.
+Adds `viewWillAppear🚀()`, `viewIsAppearing🚀()`, `viewDidAppear🚀()`, `viewWillDisappear🚀()` and `viewDidDisappear🚀()` to your UIViewControllers. There are also few bonus features worth checking out below.
 
-These act like the normal lifecycle methods, but has 2 main advantages:
+The 🚀 methods act like the normal lifecycle methods, but has 2 main advantages:
 
 1. When using pagesheets and formsheets.
 2. When backgrounding and foregrounding the app.
@@ -19,21 +19,9 @@ Normally when presenting a pagesheet or formsheet the presenting ViewController 
 
 Normally when backgrounding or foregrounding an app no lifecycle methods get called. However, 🚀 methods _will_ get called! When backgrounding the top most ViewController will trigger `viewWillDisappear🚀()` and `viewDidDisappear🚀()`. When foregrounding the top most ViewController will trigger `viewWillAppear🚀()`, `viewIsAppearing🚀()` and `viewDidAppear🚀()`.
 
-## 3. Bonus feature
-
-When dragging down a pagesheet the keyboard will automatically go away. If you cancel the drag it comes back immediately (iPhone only).
-
-<img width="320" height="569" alt="ezgif com-video-to-gif-converter" src="https://github.com/user-attachments/assets/02af1d01-ae3f-4143-b56b-795601155a2b" />
-
-This all works automatically, no need to code anything. This works in SwiftUI too!
-
-## 4. Subtle detail
+### Subtle detail
 
 When you drag down a pagesheet and you release it above the treshold the pagesheet snaps back up. This triggers `viewWillAppear()`, `viewIsAppearing()` and `viewDidAppear()`, but at the same time _after_ the animation has finished. However, `viewWillAppear🚀()` and `viewIsAppearing🚀()` will be triggered as soon as the cancel animations _starts_.
-
-## 5. tintAdjustmentMode fix
-
-This package also fixes some inconsistencies regarding tintAdjustmentMode. For example, when showing an alert the buttons on the presenting VC will now always turn gray (instead of only in some cases).
 
 ## Installation
 
@@ -47,3 +35,34 @@ Then all you have to do is add `import BoostedLifecycleMethods` to your ViewCont
 - Do not call super to a regular lifecycle method inside a 🚀 one, this will trigger an assertion error.
 - Calling super to a 🚀 method inside a 🚀 method is not necessary (but allowed).
 
+
+
+# Bonus features
+
+The underlaying technology made it possible to add a few nice bonus features to this package.
+
+### Keyboard hide on drag
+
+When dragging down a pagesheet the keyboard will automatically go away. If you cancel the drag it comes back immediately (iPhone only).
+
+
+<img width="320" height="569" alt="ezgif com-video-to-gif-converter" src="https://github.com/user-attachments/assets/02af1d01-ae3f-4143-b56b-795601155a2b" />
+
+This all works automatically, no need to code anything. This works in SwiftUI too! You can turn this on/off with `UIViewController.hideKeyboardOnSheetDrag🚀`.
+
+### Tap outside to hide keyboard and/or dismiss
+The setting `UIViewController.hideKeyboardOnTapOutside🚀` lets you close the keyboard by tapping outside an alert (or pagesheet on iPad).
+The setting `UIAlertController.cancelOnTapOutside🚀` triggers the cancel action when tapping outside an alert.
+Together you will get this:
+
+<img width="320" height="568" alt="opname-ezgif com-optimize-2" src="https://github.com/user-attachments/assets/6cab18b1-39e8-433a-be06-245a7f81bce9" />
+
+This is also great way to prevent accidentally closing a pagesheet/formsheet while typing on iPad.
+
+### Tap outside buttonless alert to close
+
+Alerts with no actions (buttons) can normally not be closed by the user. To change this you can use `UIAlertController.closeOnTapOutsideButtonless🚀`. This allows you to show clean buttonless alert notifications that can be dismissed by the user by tapping outside.
+
+### tintAdjustmentMode fix
+
+This package also fixes some inconsistencies regarding tintAdjustmentMode. For example, when showing an alert the buttons on the presenting VC will now always turn gray (instead of only in some cases).
